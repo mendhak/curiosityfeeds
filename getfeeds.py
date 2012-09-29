@@ -1,4 +1,5 @@
 import re
+import urlparse
 from google.appengine.ext import webapp
 
 class MainHandler(webapp.RequestHandler):
@@ -12,9 +13,12 @@ app = webapp.WSGIApplication([('/getfeeds', MainHandler)], debug=True)
 def GetImageIDs(htmlFragment):
     imageIds = []
 
-    matches = re.findall("ImageID=(\d+)", htmlFragment, re.IGNORECASE)
-    if matches:
-        imageIds = [int(match) for match in matches]
+    for m in re.finditer("ImageID=(\d+)", htmlFragment, re.IGNORECASE):
+        thumbPosition = htmlFragment.find("src=", m.start()) + 5
+        thumbEndPosition = htmlFragment.find("\"", thumbPosition)
+        thumbNail = htmlFragment[thumbPosition : thumbEndPosition]
+        thumbNail = urlparse.urljoin('http://mars.jpl.nasa.gov/msl/multimedia/images/', thumbNail)
+        imageIds.append((int(m.group(1)),thumbNail))
 
     return imageIds
 
@@ -35,3 +39,38 @@ def GetImageDate(htmlFragment):
         date = matches[0]
 
     return date
+
+
+def GetImageTitlePosition(htmlFragment):
+    position = None
+    matches = re.search("<strong>([^<]+)</strong>", htmlFragment, re.IGNORECASE)
+    if matches:
+        position = matches.start()
+
+    return position
+
+
+def GetImageDescription(htmlFragment):
+    desc = ''
+
+    titlePosition = GetImageTitlePosition(htmlFragment)
+
+    if titlePosition:
+        tdPosition = htmlFragment.find("<td>", titlePosition)
+        closingTdPosition = htmlFragment.find("</td>", tdPosition)
+        desc = htmlFragment[tdPosition+4 :closingTdPosition]
+        #Removes whitespace
+        desc = ' '.join(desc.split())
+
+    return desc
+
+def GetMediumImageUrl(htmlFragment):
+    imgSrc = ''
+    titlePosition = GetImageTitlePosition(htmlFragment)
+
+    if titlePosition:
+        imgPosition = htmlFragment.rfind("href=\"", 0, titlePosition) + 6
+        imgEndPosition = htmlFragment.find("\"", imgPosition)
+        imgSrc = htmlFragment[imgPosition : imgEndPosition]
+        imgSrc = urlparse.urljoin('http://mars.jpl.nasa.gov/msl/multimedia/images/', imgSrc)
+    return imgSrc

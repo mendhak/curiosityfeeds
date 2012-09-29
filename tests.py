@@ -19,7 +19,14 @@ class DemoTestCase(unittest.TestCase):
                 <td valign="top" align="center" width="200"><div style="margin:10px;"><a href="./?ImageID=4719"><img src="../../images/Williams-2pia16188-thm.jpg" alt="In this image from NASA\'s Curiosity rover, a rock outcrop called Link pops out from a Martian surface that is elsewhere blanketed by reddish-brown dust. The fractured Link outcrop has blocks of exposed, clean surfaces." width="160" border="0"></a><br><div style="margin-top:5px;margin-bottom:10px;">Link to a Watery Past</div></div></td>\n\
                 </tr><tr>'
 
-        self.testImagePageHtml = '<div style="margin-bottom:6px; font-style:italic;">09.27.2012</div>\n\
+        self.testImagePageHtml = '<div style="margin-top:10px !important;">\n\
+                                <table border="0" cellpadding="10" cellspacing="0" align="center" width="700">\n\
+                                <tr>\n\
+                                <td align="center"><a href="../../images/Grotzinger-2-pia16157-br2.jpg"><img src="../../images/Grotzinger-2-pia16157-br.jpg" alt="This map shows the path on Mars of NASA\'s Curiosity rover toward Glenelg, an area where three terrains of scientific interest converge." border="0"></a></td>\n\
+                                </tr>\n\
+                                <tr>\n\
+                                <td>\n\
+                                <div style="margin-bottom:6px; font-style:italic;">09.27.2012</div>\n\
                                 <strong>Where Water Flowed Downslope</strong>\n\
                                 </td>\n\
                                 </tr>\n\
@@ -39,10 +46,10 @@ class DemoTestCase(unittest.TestCase):
         imageIds = getfeeds.GetImageIDs(self.testImageLinkHtml)
         self.assertEquals(5,len(imageIds))
 
-    def test_GetImageIDs_HtmlFragmentWithImages_ReturnsImageIDs(self):
+    def test_GetImageIDs_HtmlFragmentWithImages_ReturnsImageIDAndAbsoluteThumbnails(self):
         imageIds = getfeeds.GetImageIDs(self.testImageLinkHtml)
-        self.assertIn(4714,imageIds)
-
+        print imageIds
+        self.assertIn((4714,'http://mars.jpl.nasa.gov/msl/images/Grotzinger-2-pia16157-thm.jpg'),imageIds)
 
     def test_GetImageIDs_HtmlFragmentWithOutImages_ReturnsEmptyList(self):
         imageIds = getfeeds.GetImageIDs('')
@@ -66,3 +73,29 @@ class DemoTestCase(unittest.TestCase):
         date = getfeeds.GetImageDate(self.testImagePageHtml)
         self.assertEqual('09.27.2012', date)
 
+    def test_GetImageDescription_HtmlFragmentFromImagePage_GetDescription(self):
+        description =getfeeds.GetImageDescription(self.testImagePageHtml)
+        self.assertIn('topography', description)
+
+    def test_GetImageDescription_HtmlFragmentFromImagePage_DoesntContainTd(self):
+        description =getfeeds.GetImageDescription(self.testImagePageHtml)
+        self.assertNotIn('<td>', description)
+
+    def test_GetImageDescription_HtmlFragmentFromImagePage_NbspNotEscaped(self):
+        description =getfeeds.GetImageDescription(self.testImagePageHtml)
+        self.assertNotIn('&amp;nbsp;', description)
+        self.assertIn('&nbsp;', description)
+
+    def test_GetImageDescription_HtmlFragmentFromImagePage_WhiteSpaceRemoved(self):
+        description = getfeeds.GetImageDescription(self.testImagePageHtml)
+        self.assertNotIn('  ', description)
+
+    def test_GetImageSrc_HtmlFragmentFromImagePage_GetsMediumImageUrl(self):
+        imgUrl = getfeeds.GetMediumImageUrl(self.testImagePageHtml)
+        print imgUrl
+        self.assertIn('images/Grotzinger-2-pia16157-br2.jpg' , imgUrl)
+
+    def test_GetImageSrc_HtmlFragmentFromImagePage_GetsMediumImageUrlAbsolute(self):
+        imgUrl = getfeeds.GetMediumImageUrl(self.testImagePageHtml)
+        print imgUrl
+        self.assertEquals('http://mars.jpl.nasa.gov/msl/images/Grotzinger-2-pia16157-br2.jpg' , imgUrl)
