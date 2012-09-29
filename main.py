@@ -20,6 +20,5 @@ class MainHandler(webapp.RequestHandler):
 
 
 
-app = webapp.WSGIApplication([('/', MainHandler)],
-                             debug=True)
+app = webapp.WSGIApplication([('/', MainHandler)], debug=True)
 

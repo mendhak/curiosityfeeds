@@ -107,6 +107,9 @@ class DemoTestCase(unittest.TestCase):
         imageIds = getfeeds.GetImageIDs('')
         self.assertIsNotNone(imageIds)
 
+    def test_GetImagePageUrl_ImageID_ReturnsImagePageUrl(self):
+        imgPageUrl = getfeeds.GetImagePageUrl(4714)
+        self.assertEquals('http://mars.jpl.nasa.gov/msl/multimedia/images/?ImageID=4714', imgPageUrl)
 
     def test_GetImageTitle_HtmlFragmentFromImagePage_ReturnsTitle(self):
         imageTitle = getfeeds.GetImageTitle(self.testImagePageHtml)

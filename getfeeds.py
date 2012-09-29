@@ -1,4 +1,5 @@
 import re
+import urllib2
 import urlparse
 from datetime import datetime
 from google.appengine.ext import webapp
@@ -6,6 +7,20 @@ from curiosityimage import CuriosityImage
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
+        imageIndexPageHTML = urllib2.urlopen('http://mars.jpl.nasa.gov/msl/multimedia/images/').read()
+        imageIds = GetImageIDs(imageIndexPageHTML)
+
+        for i,j in imageIds[0:2]:
+            imagePageHtml = urllib2.urlopen(GetImagePageUrl(i)).read()
+            ci = CuriosityImage(key_name=str(i))
+            ci.imageid = i
+            ci.title = GetImageTitle(imagePageHtml)
+            ci.description = GetImageDescription(imagePageHtml)
+            ci.date = GetImageDate(imagePageHtml)
+            ci.imageurl = GetMediumImageUrl(imagePageHtml)
+            ci.put()
+            #SaveCuriosityImage(ci)
+
 
         self.response.out.write("TEST")
 
@@ -87,3 +102,7 @@ def SaveCuriosityImage(curiosityImage):
         dbCI = curiosityImage
 
     dbCI.put()
+
+
+def GetImagePageUrl(imageId):
+    return 'http://mars.jpl.nasa.gov/msl/multimedia/images/?ImageID=' + str(imageId)
