@@ -1,6 +1,8 @@
 import re
 import urlparse
+from datetime import datetime
 from google.appengine.ext import webapp
+from curiosityimage import CuriosityImage
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
@@ -36,8 +38,8 @@ def GetImageDate(htmlFragment):
     date = ''
     matches = re.findall("(\d{2}\.\d{2}\.\d{4})", htmlFragment, re.IGNORECASE)
     if matches:
-        date = matches[0]
-
+        dateString = matches[0]
+        date = (datetime.strptime(dateString, '%m.%d.%Y')).date()
     return date
 
 
@@ -74,3 +76,14 @@ def GetMediumImageUrl(htmlFragment):
         imgSrc = htmlFragment[imgPosition : imgEndPosition]
         imgSrc = urlparse.urljoin('http://mars.jpl.nasa.gov/msl/multimedia/images/', imgSrc)
     return imgSrc
+
+
+def SaveCuriosityImage(curiosityImage):
+    dbCI = CuriosityImage.get_by_key_name(curiosityImage.key().name())
+
+    if dbCI:
+        dbCI.__dict__.update(curiosityImage.__dict__)
+    else:
+        dbCI = curiosityImage
+
+    dbCI.put()

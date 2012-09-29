@@ -1,43 +1,25 @@
 from google.appengine.ext import webapp
-from google.appengine.ext import db
-import random
+from curiosityimage import CuriosityImage
 
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
-        greeting = Greeting(parent=greeting_key("222aaa111"))
+        ci = CuriosityImage(key_name=str(42))
+        ci.imageid = 42
+        ci.date = '09.27.2012'
+        ci.description = 'DESC1234'
+        ci.put()
 
-        greeting.author = str(random.random())
+        ci2 = CuriosityImage(key_name=str(43))
+        ci2.imageid = 43
+        ci2.description = '2DESC22342'
+        ci2.put()
 
-        greeting.content = self.request.get('HTTP_USER_AGENT')
-        greeting.put()
+        self.response.out.write(
+                '<b>%s</b> wrote:' % ci.description)
 
-
-        greetings = db.GqlQuery("SELECT * "
-                          "FROM Greeting "
-                          "WHERE ANCESTOR IS :1 "
-                          "ORDER BY date DESC LIMIT 10",
-                          greeting_key("222aaa111"))
-
-        for greeting in greetings:
-            if greeting.content == self.request.get('HTTP_USER_AGENT'):
-                greeting.content = "This was an update!"
-                greeting.put()
-
-
-            self.response.out.write(
-                '<b>%s</b> wrote:' % greeting.content)
-        self.response.out.write('222Hello world!')
 
 
 app = webapp.WSGIApplication([('/', MainHandler)],
                              debug=True)
 
-def greeting_key(k):
-  """Constructs a Datastore key for a Guestbook entity with guestbook_name."""
-  return db.Key.from_path('Greeting', k or 'default_greeting')
-
-class Greeting(db.Model):
-    author = db.StringProperty()
-    content = db.StringProperty(multiline=True)
-    date = db.DateTimeProperty(auto_now_add=True)

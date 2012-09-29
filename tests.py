@@ -1,5 +1,8 @@
+# -*- coding: UTF-8 -*-
+
 import unittest
 from google.appengine.ext import testbed
+from curiosityimage import CuriosityImage
 import getfeeds
 
 class DemoTestCase(unittest.TestCase):
@@ -7,8 +10,12 @@ class DemoTestCase(unittest.TestCase):
     def setUp(self):
         # First, create an instance of the Testbed class.
         self.testbed = testbed.Testbed()
+
         # Then activate the testbed, which prepares the service stubs for use.
         self.testbed.activate()
+
+        self.testbed.init_datastore_v3_stub()
+
 
         self.testImageLinkHtml =  '<table border="0" cellpadding="0" cellspacing="0" align="center">\n\
                 <tr>\n\
@@ -41,6 +48,51 @@ class DemoTestCase(unittest.TestCase):
     def tearDown(self):
         self.testbed.deactivate()
 
+    def test_CuriosityImage_DataStoreGet(self):
+        #Insert a basic CuriosityImage
+        ci = CuriosityImage(key_name=str(42))
+        ci.imageid = 42
+        ci.description = 'DESC123'
+        ci.put()
+
+        dbCI = CuriosityImage.get_by_key_name(str(42))
+
+        self.assertIsNotNone(dbCI)
+        self.assertEquals(ci.description, dbCI.description)
+
+    def test_SaveCuriosityImage_UpdateExistingCuriosityImage(self):
+        #Insert a basic CuriosityImage
+        ci = CuriosityImage(key_name=str(42))
+        ci.imageid = 42
+        ci.description = 'DESC123'
+        ci.put()
+
+        newCi = CuriosityImage(key_name=str(42))
+        newCi.imageid = 42
+        newCi.description = 'NEWDESC123'
+
+        #Save to DB
+        getfeeds.SaveCuriosityImage(newCi)
+
+        #Get back from DB
+        dbCI = CuriosityImage.get_by_key_name(str(42))
+
+        self.assertEquals(u'NEWDESC123', dbCI.description)
+        self.assertNotEquals(u'NEWDESC123', ci.description)
+
+    def test_SaveCuriosityImage_InsertIfNotExists(self):
+
+        self.assertIsNone(CuriosityImage.get_by_key_name(str(42)))
+
+        newCi = CuriosityImage(key_name=str(42))
+        newCi.imageid = 42
+        newCi.description = 'DESC123'
+
+        #Save to DB
+        getfeeds.SaveCuriosityImage(newCi)
+
+        self.assertIsNotNone(CuriosityImage.get_by_key_name(str(42)))
+
 
     def test_GetImageIDs_HtmlFragmentWithImages_ReturnsFiveImageIds(self):
         imageIds = getfeeds.GetImageIDs(self.testImageLinkHtml)
@@ -71,7 +123,7 @@ class DemoTestCase(unittest.TestCase):
 
     def test_GetImageDate_HtmlFragmentFromImagePage_ReturnsDate(self):
         date = getfeeds.GetImageDate(self.testImagePageHtml)
-        self.assertEqual('09.27.2012', date)
+        self.assertEqual('2012-09-27', str(date))
 
     def test_GetImageDescription_HtmlFragmentFromImagePage_GetDescription(self):
         description =getfeeds.GetImageDescription(self.testImagePageHtml)
@@ -99,3 +151,4 @@ class DemoTestCase(unittest.TestCase):
         imgUrl = getfeeds.GetMediumImageUrl(self.testImagePageHtml)
         print imgUrl
         self.assertEquals('http://mars.jpl.nasa.gov/msl/images/Grotzinger-2-pia16157-br2.jpg' , imgUrl)
+
