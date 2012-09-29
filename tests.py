@@ -5,7 +5,7 @@ from google.appengine.ext import testbed
 from curiosityimage import CuriosityImage
 import getfeeds
 
-class DemoTestCase(unittest.TestCase):
+class CuriosityImageTestCases(unittest.TestCase):
 
     def setUp(self):
         # First, create an instance of the Testbed class.
@@ -39,11 +39,36 @@ class DemoTestCase(unittest.TestCase):
                                 </tr>\n\
                                 <tr>\n\
                                 <td>\n\
-                                This image shows the topography, with shading added, around the area where NASA\'s Curiosity rover landed on Aug. 5 PDT (Aug. 6 EDT). Higher elevations are colored in red, with cooler colors indicating transitions downslope to lower elevations. The black oval indicates the targeted landing area for the rover known as the "landing ellipse," and the cross shows where the rover actually landed.<br><br>An alluvial fan, or fan-shaped deposit where debris spreads out downslope, has been highlighted in lighter colors for better viewing. On Earth, alluvial fans often are formed by water flowing downslope. New observations from Curiosity of rounded pebbles embedded with rocky outcrops provide concrete evidence that water did flow in this region on Mars, creating the alluvial fan. Water carrying the pebbly material is thought to have streamed downslope extending the alluvial fan, at least occasionally, to where the rover now sits studying its ancient history.\n\
-                                Elevation data were obtained from stereo processing of images from the High Resolution Imaging Science Experiment (HiRISE) camera on NASA\'s Mars Reconnaissance Orbiter.\n\
-                                <br><br><strong>Image Credit:</strong> NASA/JPL-Caltech/UofA\n\
-                                <br><br><a href="../../images/Grotzinger-3-pia16158REPLACE-small-br.jpg">Browse Image</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="../../images/Grotzinger-3-pia16158REPLACE-small-br2.jpg">Medium Image</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://photojournal.jpl.nasa.gov/catalog/PIA16158" target="_blank">Full Res Image (NASA\'s Planetary Photojournal)</a>\n\
+                                This mosaic image with a close-up inset, taken prior to the test, shows the rock chosen ' \
+                                 'as the first target for NASA\'s Curiosity rover to zap with its Chemistry and Camera ' \
+                                 '(ChemCam) instrument. ChemCam fired its laser at the fist-sized rock, called "Coronation"' \
+                                 ' (previously “N165”), with the purpose of analyzing the glowing, ionized gas, called plasma,' \
+                                 ' that the laser excites.\n\
+                                <br><br><strong>Image Credit:</strong> NASA/JPL-Caltech/MSSS/LANL\n\
+                                <br><br><a href="../../images/msl_twirly20120817-660-br.jpg">Browse Image</a>&nbsp;&nbsp;|' \
+                                 '&nbsp;&nbsp;<a href="../../images/msl_twirly20120817-660-br2.jpg">Medium Image</a>&nbsp;&nbsp;|' \
+                                 '&nbsp;&nbsp;<a href="../../images/msl_twirly20120817-660-full.jpg">Full Res Image</a>\n\
                                 </td>'
+
+        self.testNavigationHtml = '<a href="./?s=1" style="font-size:11px;text-decoration:none;font-weight:bold;">1</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=26" style="font-size:11px;text-decoration:none;">2</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=51" style="font-size:11px;text-decoration:none;">3</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=76" style="font-size:11px;text-decoration:none;">4</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=101" style="font-size:11px;text-decoration:none;">5</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=126" style="font-size:11px;text-decoration:none;">6</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=151" style="font-size:11px;text-decoration:none;">7</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=176" style="font-size:11px;text-decoration:none;">8</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=201" style="font-size:11px;text-decoration:none;">9</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=226" style="font-size:11px;text-decoration:none;">10</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=251" style="font-size:11px;text-decoration:none;">11</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=276" style="font-size:11px;text-decoration:none;">12</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=301" style="font-size:11px;text-decoration:none;">13</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=326" style="font-size:11px;text-decoration:none;">14</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=351" style="font-size:11px;text-decoration:none;">15</a>\n\
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;<a href="./?s=26" style="font-size:11px;text-decoration:none;">Next &gt;</a>\n\
+                                    &nbsp;&nbsp;&nbsp;&nbsp;<a href="./?s=476" style="font-size:11px;text-decoration:none;">Last Page &gt;&gt;</a>\n\
+                                    </div>\n\
+                                    </div>'
 
     def tearDown(self):
         self.testbed.deactivate()
@@ -52,7 +77,7 @@ class DemoTestCase(unittest.TestCase):
         #Insert a basic CuriosityImage
         ci = CuriosityImage(key_name=str(42))
         ci.imageid = 42
-        ci.description = 'DESC123'
+        ci.description = u'previously “N165”'
         ci.put()
 
         dbCI = CuriosityImage.get_by_key_name(str(42))
@@ -60,7 +85,7 @@ class DemoTestCase(unittest.TestCase):
         self.assertIsNotNone(dbCI)
         self.assertEquals(ci.description, dbCI.description)
 
-    def test_SaveCuriosityImage_UpdateExistingCuriosityImage(self):
+    def test_SaveCuriosityImage_DoNotUpdateExistingCuriosityImage(self):
         #Insert a basic CuriosityImage
         ci = CuriosityImage(key_name=str(42))
         ci.imageid = 42
@@ -77,7 +102,7 @@ class DemoTestCase(unittest.TestCase):
         #Get back from DB
         dbCI = CuriosityImage.get_by_key_name(str(42))
 
-        self.assertEquals(u'NEWDESC123', dbCI.description)
+        self.assertEquals(u'DESC123', dbCI.description)
         self.assertNotEquals(u'NEWDESC123', ci.description)
 
     def test_SaveCuriosityImage_InsertIfNotExists(self):
@@ -92,6 +117,19 @@ class DemoTestCase(unittest.TestCase):
         getfeeds.SaveCuriosityImage(newCi)
 
         self.assertIsNotNone(CuriosityImage.get_by_key_name(str(42)))
+
+    def test_CuriosityImageExists_ExistingImageID_ReturnsTrue(self):
+        #Insert a basic CuriosityImage
+        ci = CuriosityImage(key_name=str(42))
+        ci.imageid = 42
+        ci.description = 'DESC123'
+        ci.put()
+
+        exists = getfeeds.CuriosityImageExists(42)
+
+        self.assertTrue(exists)
+
+
 
 
     def test_GetImageIDs_HtmlFragmentWithImages_ReturnsFiveImageIds(self):
@@ -130,7 +168,11 @@ class DemoTestCase(unittest.TestCase):
 
     def test_GetImageDescription_HtmlFragmentFromImagePage_GetDescription(self):
         description =getfeeds.GetImageDescription(self.testImagePageHtml)
-        self.assertIn('topography', description)
+        self.assertIn('mosaic', description)
+
+    def test_GetImageDescription_HtmlFragmentFromImagePage_GetsUnicodeString(self):
+        description =getfeeds.GetImageDescription(self.testImagePageHtml)
+        self.assertIn(u'mosaic', description)
 
     def test_GetImageDescription_HtmlFragmentFromImagePage_DoesntContainTd(self):
         description =getfeeds.GetImageDescription(self.testImagePageHtml)
@@ -155,3 +197,6 @@ class DemoTestCase(unittest.TestCase):
         print imgUrl
         self.assertEquals('http://mars.jpl.nasa.gov/msl/images/Grotzinger-2-pia16157-br2.jpg' , imgUrl)
 
+    def test_GetNextPageUrl_HtmlNavigationFragement_GetsNextPageAbsoluteUrl(self):
+        nextUrl = getfeeds.GetNextPageUrl(self.testNavigationHtml)
+        self.assertEquals('http://mars.jpl.nasa.gov/msl/multimedia/images/?s=26', nextUrl)
