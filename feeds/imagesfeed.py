@@ -43,6 +43,9 @@ class ImagesFeed(webapp.RequestHandler):
 
             self.response.out.write("</item>\r\n")
 
+        self.response.out.write("</channel>\r\n")
+        self.response.out.write("</rss>")
+
 
 
 
