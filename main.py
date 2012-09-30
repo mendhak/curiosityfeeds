@@ -1,5 +1,5 @@
 from google.appengine.ext import webapp
-from curiosityimage import CuriosityImage
+from models.curiosityimage import CuriosityImage
 
 
 class MainHandler(webapp.RequestHandler):

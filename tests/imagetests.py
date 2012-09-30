@@ -2,8 +2,8 @@
 
 import unittest
 from google.appengine.ext import testbed
-from curiosityimage import CuriosityImage
-import getfeeds
+from feeds import getfeeds
+from models.curiosityimage import CuriosityImage
 
 class CuriosityImageTestCases(unittest.TestCase):
 
@@ -167,19 +167,19 @@ class CuriosityImageTestCases(unittest.TestCase):
         self.assertEqual('2012-09-27', str(date))
 
     def test_GetImageDescription_HtmlFragmentFromImagePage_GetDescription(self):
-        description =getfeeds.GetImageDescription(self.testImagePageHtml)
+        description = getfeeds.GetImageDescription(self.testImagePageHtml)
         self.assertIn('mosaic', description)
 
     def test_GetImageDescription_HtmlFragmentFromImagePage_GetsUnicodeString(self):
-        description =getfeeds.GetImageDescription(self.testImagePageHtml)
+        description = getfeeds.GetImageDescription(self.testImagePageHtml)
         self.assertIn(u'mosaic', description)
 
     def test_GetImageDescription_HtmlFragmentFromImagePage_DoesntContainTd(self):
-        description =getfeeds.GetImageDescription(self.testImagePageHtml)
+        description = getfeeds.GetImageDescription(self.testImagePageHtml)
         self.assertNotIn('<td>', description)
 
     def test_GetImageDescription_HtmlFragmentFromImagePage_NbspNotEscaped(self):
-        description =getfeeds.GetImageDescription(self.testImagePageHtml)
+        description = getfeeds.GetImageDescription(self.testImagePageHtml)
         self.assertNotIn('&amp;nbsp;', description)
         self.assertIn('&nbsp;', description)
 

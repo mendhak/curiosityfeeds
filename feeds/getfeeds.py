@@ -5,7 +5,7 @@ from datetime import datetime
 from time import sleep
 from google.appengine.api import urlfetch
 from google.appengine.ext import webapp
-from curiosityimage import CuriosityImage
+from models.curiosityimage import CuriosityImage
 
 class MainHandler(webapp.RequestHandler):
 
