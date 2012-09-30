@@ -1,0 +1,4 @@
+cron:
+- description: Fetch New Curiosity Images
+  url: /getfeeds?url=http://mars.jpl.nasa.gov/msl/multimedia/images/
+  schedule: every 2 hours
