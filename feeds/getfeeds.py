@@ -5,7 +5,10 @@ from datetime import datetime
 from time import sleep
 from google.appengine.api import urlfetch
 from google.appengine.ext import webapp
+import sys
 from models.curiosityimage import CuriosityImage
+
+
 
 class MainHandler(webapp.RequestHandler):
 
@@ -17,17 +20,21 @@ class MainHandler(webapp.RequestHandler):
         if self.request.get('firstrun'):
             self.firstRun = True
             self.log("firstRun set to true")
+
         else:
             self.firstRun = False
 
-        self.ParseAllPagesAndFollowNextLink('http://mars.jpl.nasa.gov/msl/multimedia/images/')
+        #'http://mars.jpl.nasa.gov/msl/multimedia/images/'
+        url = self.request.get('url')
+
+        self.ParseAllPagesAndFollowNextLink(url)
         self.response.out.write("<br />DONE")
 
     def GetUrlContents(self, url):
         try:
-            return urlfetch.fetch(url, deadline=15).content
-        except Exception, e:
-            self.log( "Could not get URL: %s" % e)
+            return urlfetch.fetch(url, deadline=60).content
+        except:
+            self.log( "Could not get URL:" + url + ". Error: " + str(sys.exc_info()[0]))
 
     def ParseAllPagesAndFollowNextLink(self, imageIndexPageUrl):
 
@@ -37,28 +44,49 @@ class MainHandler(webapp.RequestHandler):
         self.log("Processing %s" % imageIndexPageUrl)
 
         imageIndexPageHTML = self.GetUrlContents(imageIndexPageUrl)
+
+        if not imageIndexPageHTML:
+            self.log("imageIndexPageHTML is empty for " + imageIndexPageUrl)
+            return
+
         imageIds = GetImageIDs(imageIndexPageHTML)
 
         for i,j in imageIds:
-            self.log("Image ID %s" % str(i))
+            if CuriosityImageExists(i):
+                self.log("Image ID %s already exists in the datastore." % i)
+                if not self.firstRun:
+                    self.log("Stopping processing.")
+                    return
+                else:
+                    continue
 
-            if (not self.firstRun) and CuriosityImageExists(i):
-                self.log("Image ID %s already exists in the datastore. Stop processing." % i)
-                return
-            else:
-                imagePageHtml = self.GetUrlContents(GetImagePageUrl(i))
-                ci = CuriosityImage(key_name=str(i))
-                ci.imageid = i
-                ci.title = GetImageTitle(imagePageHtml)
-                ci.description = GetImageDescription(imagePageHtml)
-                ci.date = GetImageDate(imagePageHtml)
-                ci.imageurl = GetMediumImageUrl(imagePageHtml)
-                SaveCuriosityImage(ci)
+            imagePageHtml = self.GetUrlContents(GetImagePageUrl(i))
+            if not imagePageHtml:
+                self.log("imagePageHtml is empty for " + str(i))
+                break
+            ci = CuriosityImage(key_name=str(i))
+            ci.imageid = i
+            ci.title = GetImageTitle(imagePageHtml)
+            ci.description = GetImageDescription(imagePageHtml)
+            ci.date = GetImageDate(imagePageHtml)
+            ci.imageurl = GetMediumImageUrl(imagePageHtml)
+            SaveCuriosityImage(ci)
 
         self.log("Sleeping for 5 seconds")
         sleep(5)
-        self.ParseAllPagesAndFollowNextLink(GetNextPageUrl(imageIndexPageHTML))
 
+        #App engine doesn't like long running pages,
+        #so we redirect to same page with different querystring
+        self.ProcessNextPage(imageIndexPageHTML)
+
+
+    def ProcessNextPage(self, htmlFragment):
+        nextPage = GetNextPageUrl(htmlFragment)
+        if nextPage:
+            redirectUrl = '/getfeeds?url=' + nextPage
+            if self.firstRun:
+                redirectUrl += '&firstrun=firstrun'
+            self.redirect(redirectUrl)
 
 
 app = webapp.WSGIApplication([('/getfeeds', MainHandler)], debug=True)
@@ -148,12 +176,8 @@ def GetMediumImageUrl(htmlFragment):
 def SaveCuriosityImage(curiosityImage):
     dbCI = CuriosityImage.get_by_key_name(curiosityImage.key().name())
 
-    if dbCI:
-        dbCI.__dict__.update(curiosityImage.__dict__)
-    else:
-        dbCI = curiosityImage
-
-    dbCI.put()
+    if dbCI is None:
+        curiosityImage.put()
 
 
 def GetImagePageUrl(imageId):
