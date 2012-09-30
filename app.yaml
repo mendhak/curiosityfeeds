@@ -9,4 +9,7 @@ handlers:
   script: main.app
 
 - url: /getfeeds
-  script: getfeeds.app
+  script: feeds.getfeeds.app
+
+- url: /images
+  script: feeds.imagesfeed.app
