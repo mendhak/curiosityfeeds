@@ -14,8 +14,14 @@ class MainHandler(webapp.RequestHandler):
         logging.info(message)
 
     def get(self):
+        if self.request.get('firstrun'):
+            self.firstRun = True
+            self.log("firstRun set to true")
+        else:
+            self.firstRun = False
+
         self.ParseAllPagesAndFollowNextLink('http://mars.jpl.nasa.gov/msl/multimedia/images/')
-        self.response.out.write("DONE")
+        self.response.out.write("<br />DONE")
 
     def GetUrlContents(self, url):
         try:
@@ -36,8 +42,9 @@ class MainHandler(webapp.RequestHandler):
         for i,j in imageIds:
             self.log("Image ID %s" % str(i))
 
-            if CuriosityImageExists(i):
-                self.log("Image ID %s already exists in the datastore." % i)
+            if (not self.firstRun) and CuriosityImageExists(i):
+                self.log("Image ID %s already exists in the datastore. Stop processing." % i)
+                return
             else:
                 imagePageHtml = self.GetUrlContents(GetImagePageUrl(i))
                 ci = CuriosityImage(key_name=str(i))
@@ -141,8 +148,12 @@ def GetMediumImageUrl(htmlFragment):
 def SaveCuriosityImage(curiosityImage):
     dbCI = CuriosityImage.get_by_key_name(curiosityImage.key().name())
 
-    if dbCI is None:
-        curiosityImage.put()
+    if dbCI:
+        dbCI.__dict__.update(curiosityImage.__dict__)
+    else:
+        dbCI = curiosityImage
+
+    dbCI.put()
 
 
 def GetImagePageUrl(imageId):

@@ -85,7 +85,7 @@ class CuriosityImageTestCases(unittest.TestCase):
         self.assertIsNotNone(dbCI)
         self.assertEquals(ci.description, dbCI.description)
 
-    def test_SaveCuriosityImage_DoNotUpdateExistingCuriosityImage(self):
+    def test_SaveCuriosityImage_UpdateExistingCuriosityImage(self):
         #Insert a basic CuriosityImage
         ci = CuriosityImage(key_name=str(42))
         ci.imageid = 42
@@ -102,7 +102,7 @@ class CuriosityImageTestCases(unittest.TestCase):
         #Get back from DB
         dbCI = CuriosityImage.get_by_key_name(str(42))
 
-        self.assertEquals(u'DESC123', dbCI.description)
+        self.assertEquals(u'NEWDESC123', dbCI.description)
         self.assertNotEquals(u'NEWDESC123', ci.description)
 
     def test_SaveCuriosityImage_InsertIfNotExists(self):
