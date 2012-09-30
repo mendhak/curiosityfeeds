@@ -187,6 +187,12 @@ class CuriosityImageTestCases(unittest.TestCase):
         description = getfeeds.GetImageDescription(self.testImagePageHtml)
         self.assertNotIn('  ', description)
 
+    def test_GetImageDescription_HtmlFragmentFromImagePage_RelativePathsConvertedToAbsolute(self):
+        description = getfeeds.GetImageDescription(self.testImagePageHtml)
+        self.assertNotIn('../../images/msl_twirly20120817-660-br2.jpg', description)
+        self.assertIn('http://mars.jpl.nasa.gov/msl/images/msl_twirly20120817-660-br2.jpg', description)
+
+
     def test_GetImageSrc_HtmlFragmentFromImagePage_GetsMediumImageUrl(self):
         imgUrl = getfeeds.GetMediumImageUrl(self.testImagePageHtml)
         print imgUrl

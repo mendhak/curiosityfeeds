@@ -107,8 +107,24 @@ def GetImageDescription(htmlFragment):
         desc = htmlFragment[tdPosition+4 :closingTdPosition]
         #Removes whitespace
         desc = ' '.join(desc.split())
+        desc = ReplaceRelativeUrls(desc)
 
     return safe_unicode(desc)
+
+def ReplaceRelativeUrls(desc):
+
+    replacements = []
+
+    for m in re.finditer("\"\.\./",desc):
+        closingPos = desc.find("\"", m.start()+1)
+        relativeUrl = desc[m.start()+1:closingPos]
+        replacements.append((relativeUrl,urlparse.urljoin('http://mars.jpl.nasa.gov/msl/multimedia/images/', relativeUrl)  ))
+
+    for r in replacements:
+        desc = desc.replace(r[0], r[1])
+
+    return desc
+
 
 def GetMediumImageUrl(htmlFragment):
     imgSrc = ''
