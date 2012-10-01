@@ -11,47 +11,50 @@ class ImagesFeed(webapp.RequestHandler):
 
         self.response.headers['Content-Type'] = "application/rss+xml"
 
-        requestedImages = None
         maxImages = 50
 
         if self.request.get('all'):
             maxImages = 100000
+
+
+        finalOutput = memcache.get('Last50Images')
+
+        if not finalOutput or self.request.get('all'):
             requestedImages = self.GetImagesFromDataStore(maxImages)
 
-        if not self.request.get('all'):
-            requestedImages = memcache.get('Last50Images')
-            if not requestedImages:
-                requestedImages = self.GetImagesFromDataStore(maxImages)
-                memcache.add('Last50Images',requestedImages)
+            rssXml = ["<?xml version=\"1.0\"?>\r\n",
+                      "<rss version=\"2.0\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\r\n", "<channel>\r\n",
+                      "<title>MSL Curiosity Images</title>\r\n",
+                      "<link>http://mars.jpl.nasa.gov/msl/multimedia/images/</link>\r\n",
+                      "<description>MSL Curiosity Images</description>\r\n", "<language>en-us</language>\r\n"]
+
+            for p in requestedImages:
+                rssXml.append("<item>\r\n")
+                rssXml.append("<title><![CDATA[" + p.title + "]]></title>\r\n")
+                rssXml.append("<link>" + getfeeds.GetImagePageUrl(p.imageid) + "</link>\r\n")
+                rssXml.append("<description><![CDATA[<p class=\"image-container\" style=\"text-align: center;\">")
+                rssXml.append("<img src=\"" + p.imageurl + "\" alt=\"" + p.title + "\" />")
+                rssXml.append("</p>")
+
+                rssXml.append(p.description)
+                rssXml.append("]]></description>\r\n")
+
+                dttuple = p.date.timetuple()
+                timestamp = time.mktime(dttuple)
+                rssXml.append("<pubDate>" + utils.formatdate(timestamp) + "</pubDate>")
+
+                rssXml.append("</item>\r\n")
+
+            rssXml.append("</channel>\r\n")
+            rssXml.append("</rss>")
+
+            finalOutput = ''.join(rssXml)
+
+            if not self.request.get('all'):
+                memcache.add('Last50Images', finalOutput)
 
 
-        self.response.out.write("<?xml version=\"1.0\"?>\r\n")
-        self.response.out.write("<rss version=\"2.0\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\r\n")
-        self.response.out.write("<channel>\r\n")
-        self.response.out.write("<title>MSL Curiosity Images</title>\r\n")
-        self.response.out.write("<link>http://mars.jpl.nasa.gov/msl/multimedia/images/</link>\r\n")
-        self.response.out.write("<description>MSL Curiosity Images</description>\r\n")
-        self.response.out.write("<language>en-us</language>\r\n")
-
-        for p in requestedImages:
-            self.response.out.write("<item>\r\n")
-            self.response.out.write("<title><![CDATA[" + p.title + "]]></title>\r\n")
-            self.response.out.write("<link>" + getfeeds.GetImagePageUrl(p.imageid) + "</link>\r\n")
-            self.response.out.write("<description><![CDATA[<p class=\"image-container\" style=\"text-align: center;\">")
-            self.response.out.write("<img src=\"" + p.imageurl + "\" alt=\"" + p.title + "\" />")
-            self.response.out.write("</p>")
-
-            self.response.out.write(p.description)
-            self.response.out.write("]]></description>\r\n")
-
-            dttuple = p.date.timetuple()
-            timestamp = time.mktime(dttuple)
-            self.response.out.write("<pubDate>" + utils.formatdate(timestamp) + "</pubDate>")
-
-            self.response.out.write("</item>\r\n")
-
-        self.response.out.write("</channel>\r\n")
-        self.response.out.write("</rss>")
+        self.response.out.write(finalOutput)
 
     def GetImagesFromDataStore(self, numberOfImages):
         q = CuriosityImage.all()
