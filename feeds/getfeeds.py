@@ -7,6 +7,7 @@ from google.appengine.api import urlfetch
 from google.appengine.ext import webapp
 import sys
 from models.curiosityimage import CuriosityImage
+from google.appengine.api import memcache
 
 
 
@@ -177,6 +178,7 @@ def SaveCuriosityImage(curiosityImage):
     dbCI = CuriosityImage.get_by_key_name(curiosityImage.key().name())
 
     if dbCI is None:
+        memcache.flush_all()
         curiosityImage.put()
 
 

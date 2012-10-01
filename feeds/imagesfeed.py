@@ -3,6 +3,7 @@ import time
 from feeds import getfeeds
 from models.curiosityimage import CuriosityImage
 from email import utils
+from google.appengine.api import memcache
 
 
 class ImagesFeed(webapp.RequestHandler):
@@ -10,13 +11,19 @@ class ImagesFeed(webapp.RequestHandler):
 
         self.response.headers['Content-Type'] = "application/rss+xml"
 
+        requestedImages = None
         maxImages = 50
 
         if self.request.get('all'):
             maxImages = 100000
+            requestedImages = self.GetImagesFromDataStore(maxImages)
 
-        q = CuriosityImage.all()
-        q.order('-date')
+        if not self.request.get('all'):
+            requestedImages = memcache.get('Last50Images')
+            if not requestedImages:
+                requestedImages = self.GetImagesFromDataStore(maxImages)
+                memcache.add('Last50Images',requestedImages)
+
 
         self.response.out.write("<?xml version=\"1.0\"?>\r\n")
         self.response.out.write("<rss version=\"2.0\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\r\n")
@@ -26,7 +33,7 @@ class ImagesFeed(webapp.RequestHandler):
         self.response.out.write("<description>MSL Curiosity Images</description>\r\n")
         self.response.out.write("<language>en-us</language>\r\n")
 
-        for p in q.run(limit=maxImages):
+        for p in requestedImages:
             self.response.out.write("<item>\r\n")
             self.response.out.write("<title><![CDATA[" + p.title + "]]></title>\r\n")
             self.response.out.write("<link>" + getfeeds.GetImagePageUrl(p.imageid) + "</link>\r\n")
@@ -46,7 +53,10 @@ class ImagesFeed(webapp.RequestHandler):
         self.response.out.write("</channel>\r\n")
         self.response.out.write("</rss>")
 
-
+    def GetImagesFromDataStore(self, numberOfImages):
+        q = CuriosityImage.all()
+        q.order('-date')
+        return q.fetch(limit=numberOfImages)
 
 
 
