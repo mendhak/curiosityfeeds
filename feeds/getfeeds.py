@@ -144,6 +144,7 @@ def GetImageDescription(htmlFragment):
         #Removes whitespace
         desc = ' '.join(desc.split())
         desc = ReplaceRelativeUrls(desc)
+        desc = CleanUpHtml(desc)
 
     return safe_unicode(desc)
 
@@ -219,3 +220,8 @@ def safe_str(obj):
     except UnicodeEncodeError:
         # obj is unicode
         return unicode(obj).encode('unicode_escape')
+
+def CleanUpHtml(desc):
+    """ Replaces bad HTML such as <br> with <br /> """
+    desc = desc.replace('<br>','<br />')
+    return desc
