@@ -1,14 +1,8 @@
-Google app engine project.  The plan is to provide RSS feeds for
+Mars Curiosity Images RSS Feed
+===
 
-* MSL Curiosity Raw Images
-* MSL Curiosity Images
-* MSL Curiosity Multimedia
-* MSL Curiosity News
+An [RSS feed of images from the Mars Curiosity Rover](http://curiosityfeeds.appspot.com/images) as supplied on the NASA MSL website.
 
-TODO:
+At the time of writing, no such RSS feed is being provided by NASA.
 
-* Move getfeeds.py work to the background using the [Task Queue API](https://developers.google.com/appengine/docs/python/taskqueue/)
-	* Inform client via [Channel API](https://developers.google.com/appengine/docs/python/channel/overview)
-	* Or just make another datastore entity
-* Create AJAX interface for getfeeds.py to get realistic progress
-* Generate RSS feed for Images
+The code requires the Google App Engine and Python to run.
